@@ -12,8 +12,10 @@ board's address on a PC, a Raspberry Pi or a phone, and you're at the Finder.
 
 *System 4.2 and Finder 6.0 on a Heltec V4, with 1,024K of memory.*
 
-> Have a **Heltec V3** instead? It has no PSRAM, so it runs a 128K Mac:
-> see [Heltec-Mac](https://github.com/hardwaremack-prog/Heltec-Mac128k). Both share the same
+> Have a **Heltec V3** instead? It has no PSRAM, so it runs a 128K Mac. Flash it with
+> [`flasher/Heltec-Mac-Flasher.html`](flasher/Heltec-Mac-Flasher.html) (or
+> `firmware/Heltec-Mac.bin`), included here for convenience. Its home is
+> [Heltec-Mac](https://github.com/hardwaremack-prog/Heltec-Mac128k). Both share the same
 > code, and a V3 and a V4 can sit on the same network.
 
 ## Highlights
@@ -210,7 +212,7 @@ limit, so with arduino-cli add `--build-property upload.maximum_size=2097152`.
 | `web/` | The browser-side unpackers and the virtual ImageWriter |
 | `flasher/` | The one-page flasher and the script that builds it |
 | `host/` | A PC build of the same emulator and web page, for testing |
-| `firmware/` | The ready-to-flash image |
+| `firmware/` | The ready-to-flash images: `Heltec-Mac-V4.bin` (this SE build) and `Heltec-Mac.bin` (the V3's 128K build) |
 
 The PC build runs the same code on a desktop:
 
