@@ -1,7 +1,7 @@
 #!/bin/sh
-# Builds Heltec-Mac SE with arduino-cli and writes a ready-to-flash image (bootloader +
+# Builds Heltec V4 Mac SE with arduino-cli and writes a ready-to-flash image (bootloader +
 # partition table + app, for writing at 0x0):
-#   firmware/Heltec-Mac-V4.bin   Heltec WiFi LoRa 32 V4 (Mac SE, uses the PSRAM)
+#   firmware/Heltec-V4-Mac-SE.bin   Heltec WiFi LoRa 32 V4 (Mac SE, uses the PSRAM)
 # Usage: tools/build_firmware.sh
 #   ARDUINO_CLI=/path/to/arduino-cli  ARDUINO_CONFIG=/path/to/arduino-cli.yaml  to override
 set -e
@@ -27,7 +27,7 @@ build_v4() {
   $CLI $CFG compile --fqbn "esp32:esp32:heltec_wifi_lora_32_V4:PSRAM=enabled,FlashSize=16M,CDCOnBoot=cdc,USBMode=hwcdc" $EXTRA \
       --build-property upload.maximum_size=2097152 \
       --output-dir "$out" "$here/Heltec-Mac"
-  image "$out/Heltec-Mac.ino.merged.bin" "$out/Heltec-Mac.ino.bin" "$here/firmware/Heltec-Mac-V4.bin"
+  image "$out/Heltec-Mac.ino.merged.bin" "$out/Heltec-Mac.ino.bin" "$here/firmware/Heltec-V4-Mac-SE.bin"
 }
 
 build_v4

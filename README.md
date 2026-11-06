@@ -1,8 +1,8 @@
-# Heltec-Mac SE
+# Heltec V4 Mac SE
 
 **A 1 MB Macintosh SE running on a Heltec V4 Meshtastic board, played in your web browser, with sound.**
 
-Heltec-Mac SE turns a **Heltec WiFi LoRa 32 V4** (the ESP32-S3 board with 2 MB of PSRAM and
+Heltec V4 Mac SE turns a **Heltec WiFi LoRa 32 V4** (the ESP32-S3 board with 2 MB of PSRAM and
 16 MB of flash) into a working **Macintosh SE**. The board emulates the Mac's 68000 processor
 and its hardware, keeps a library of 800K and 1.44 MB floppy disks in its own flash, and serves
 the Mac's screen and sound to any browser on your network. There's no app to install: open the
@@ -13,9 +13,9 @@ board's address on a PC, a Raspberry Pi or a phone, and you're at the Finder.
 *System 4.2 and Finder 6.0 on a Heltec V4, with 1,024K of memory.*
 
 > Have a **Heltec V3** instead? It has no PSRAM, so it runs a 128K Mac. Flash it with
-> [`flasher/Heltec-Mac-Flasher.html`](flasher/Heltec-Mac-Flasher.html) (or
-> `firmware/Heltec-Mac.bin`), included here for convenience. Its home is
-> [Heltec-Mac](https://github.com/hardwaremack-prog/Heltec-Mac128k). Both share the same
+> [`flasher/Heltec-V3-Mac128k-Flasher.html`](flasher/Heltec-V3-Mac128k-Flasher.html) (or
+> `firmware/Heltec-V3-Mac128k.bin`), included here for convenience. Its home is
+> [Heltec V3 Mac 128K](https://github.com/hardwaremack-prog/Heltec-Mac128k). Both share the same
 > code, and a V3 and a V4 can sit on the same network.
 
 ## Highlights
@@ -58,14 +58,14 @@ board's address on a PC, a Raspberry Pi or a phone, and you're at the Finder.
 - **Chrome or Edge** on a computer, for flashing
 - Your own **Mac ROM** and **disk images**. Apple's software isn't included.
 
-> Flashing Heltec-Mac SE replaces Meshtastic on the board. To go back, reflash Meshtastic from
+> Flashing Heltec V4 Mac SE replaces Meshtastic on the board. To go back, reflash Meshtastic from
 > flasher.meshtastic.org.
 
 ## Quick start
 
 ### 1. Flash the board
 
-Download [`flasher/Heltec-Mac-V4-Flasher.html`](flasher/Heltec-Mac-V4-Flasher.html) and open it
+Download [`flasher/Heltec-V4-Mac-SE-Flasher.html`](flasher/Heltec-V4-Mac-SE-Flasher.html) and open it
 in Chrome or Edge. The firmware is built into the page. Plug in the board, click **Connect**,
 pick it from the list, and click **Flash**. The V4 uses the ESP32-S3's own USB, so it needs no
 driver. If it doesn't show up, put it in download mode (hold **PRG**, tap **RST**, let go) and
@@ -73,7 +73,7 @@ connect again.
 
 ![The flasher, with the backup and clone section](docs/flasher.png)
 
-Prefer the command line? `esptool --chip esp32s3 write-flash 0x0 firmware/Heltec-Mac-V4.bin`.
+Prefer the command line? `esptool --chip esp32s3 write-flash 0x0 firmware/Heltec-V4-Mac-SE.bin`.
 Updating later keeps your ROM, disks and Wi‑Fi settings.
 
 **Back up or clone.** After **Connect**, **Back up this board** saves the whole 16 MB flash
@@ -83,7 +83,7 @@ and your ROM, so keep it private.
 
 ### 2. Put it on your Wi‑Fi
 
-The first time, the board makes its own hotspot: **Heltec-MacSE-Setup**, password
+The first time, the board makes its own hotspot: **Heltec-V4-MacSE-Setup**, password
 **heltecmac**. Join it, open **http://192.168.4.1**, pick your network under **Wi‑Fi**, and
 click **Save & restart**. The OLED then shows the board's address. It also answers to
 **heltec-macse.local** on most computers.
@@ -203,7 +203,7 @@ Arduino IDE (or arduino-cli) with the **esp32** core 3.x. Open
 setting turns on the SE build (`heltec_config.h`). The app is bigger than the default 1.3 MB
 limit, so with arduino-cli add `--build-property upload.maximum_size=2097152`.
 
-`tools/build_firmware.sh` does all of this and writes `firmware/Heltec-Mac-V4.bin`.
+`tools/build_firmware.sh` does all of this and writes `firmware/Heltec-V4-Mac-SE.bin`.
 
 | Folder | What's in it |
 |---|---|
@@ -212,7 +212,7 @@ limit, so with arduino-cli add `--build-property upload.maximum_size=2097152`.
 | `web/` | The browser-side unpackers and the virtual ImageWriter |
 | `flasher/` | The one-page flasher and the script that builds it |
 | `host/` | A PC build of the same emulator and web page, for testing |
-| `firmware/` | The ready-to-flash images: `Heltec-Mac-V4.bin` (this SE build) and `Heltec-Mac.bin` (the V3's 128K build) |
+| `firmware/` | The ready-to-flash images: `Heltec-V4-Mac-SE.bin` (this SE build) and `Heltec-V3-Mac128k.bin` (the V3's 128K build) |
 
 The PC build runs the same code on a desktop:
 
@@ -222,7 +222,7 @@ cd host && V4=1 ./build.sh
 ```
 
 After changing `web/*.js`, run `python3 tools/embed_js.py`. After changing the firmware,
-`python3 flasher/make_flasher.py <esptool-js bundle> firmware/Heltec-Mac-V4.bin --v4` rebuilds
+`python3 flasher/make_flasher.py <esptool-js bundle> firmware/Heltec-V4-Mac-SE.bin --v4` rebuilds
 the flasher.
 
 ## Credits and licences
