@@ -36,7 +36,7 @@ board's address on a PC, a Raspberry Pi or a phone, and you're at the Finder.
   internet.
 - **Drop in almost any old Mac file:** `.img`, `.dsk`, DiskCopy 4.2 `.image`, `.zip`, `.7z`,
   `.sit` (including StuffIt 5), `.hqx`, `.bin`, `.gz`. Your browser unpacks them.
-- **Board controls on the page:** battery level, uptime and why it last started,
+- **Board controls on the page:** **No disk**, battery level, uptime and why it last started,
   **Restart Mac**, **Restart board** and **Sleep board**.
 - **Works anywhere:** on your home Wi‑Fi, or from the board's own hotspot.
 - **One-page flasher** for Chrome or Edge, with backup, restore and clone.
@@ -118,6 +118,7 @@ Open `http://<board address>` (or `http://heltec-macse.local`) and click the Mac
   keeps for itself.
 - **Paste** text straight into the Mac, or use **Type into the Mac** for longer text.
 - **Sound** starts at your first click. The **Sound** button turns it off.
+- **No disk** takes the disk out and restarts the Mac with an empty drive, like ejecting it.
 - **Restart Mac** is the reset switch. **Restart board** restarts the Heltec. **Sleep board**
   turns everything off until you press **PRG**. Each one saves the disk first.
 - **Turbo** (under Machine) lets the Mac run flat out instead of at 8 MHz.
