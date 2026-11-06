@@ -1,0 +1,13 @@
+build/
+host/obj/
+host/machost
+host/tests/keys_test
+host/flash-*.bin
+*.pbm
+host/page.png
+web/obj/
+web/heltec-mac.wasm
+flasher/node_modules/
+*-backup-*.bin
+host/obj-v4/
+host/machost-v4

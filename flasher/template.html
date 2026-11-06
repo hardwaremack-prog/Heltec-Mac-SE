@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>%%NAME%% Flasher</title>
+<style>
+/* Layout: one narrow column of numbered steps (the order matters), log at the bottom */
+:root{--bg:#eceae4;--card:#f8f7f3;--ink:#1f1e1b;--mute:#66635c;--line:#cdc9bf;--accent:#2b5f8e;--accent-ink:#fff;--ok:#2e6b34;--bad:#a1322c;--warn:#8a5a10;
+--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--mono:ui-monospace,"Cascadia Mono",Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#18191b;--card:#222326;--ink:#ebe9e4;--mute:#a19d95;--line:#3a3b3f;--accent:#6fa3d4;--accent-ink:#0f1720;--ok:#7cc483;--bad:#ef8a80;--warn:#e0b25c;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans)}
+main{max-width:760px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px}
+header{display:grid;gap:4px}
+h1{margin:0;font:600 26px/1.2 var(--mono);letter-spacing:.5px;text-wrap:balance}
+header p{margin:0;color:var(--mute)}
+.step{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:grid;gap:10px}
+.step h2{margin:0;font-size:16px;display:flex;gap:10px;align-items:baseline}
+.step h2 .n{font:600 13px var(--mono);color:var(--mute)}
+.step.done{border-color:var(--ok)}.step.done h2 .n{color:var(--ok)}
+.step p,.step ul{margin:0}.step ul{padding-left:20px;display:grid;gap:4px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:inherit;padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.status{font-size:14px}.status.ok{color:var(--ok)}.status.bad{color:var(--bad)}.status.warn{color:var(--warn)}
+.info{font:13px/1.6 var(--mono);color:var(--mute);font-variant-numeric:tabular-nums}
+progress{width:100%;height:14px;accent-color:var(--accent)}
+label{display:flex;gap:8px;align-items:flex-start}
+details{border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;font-weight:600}
+details ul{margin-top:8px}
+#boardLog{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;font:12px/1.5 var(--mono);height:220px;overflow:auto;white-space:pre-wrap;margin:0;min-width:0}
+#log{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;font:12px/1.5 var(--mono);height:180px;overflow:auto;white-space:pre-wrap;margin:0;min-width:0}
+code{font:13px var(--mono);background:var(--bg);padding:1px 5px;border-radius:4px}
+kbd{font:12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px}
+</style></head><body><main>
+<header><h1>%%NAME%% Flasher</h1>
+<p>Puts %%NAME%% on a %%BOARD%% over USB. Firmware %%FWINFO%% is built in.</p></header>
+
+<section class="step" id="s0"><h2><span class="n">1</span>Check this browser</h2>
+<p class="status" id="browserMsg">Checking...</p></section>
+
+<section class="step" id="s1"><h2><span class="n">2</span>Plug in and connect</h2>
+<ul>
+<li>Use a USB-C cable that carries data (many charging cables don't).</li>
+<li>Close anything else using the board: the Meshtastic web client or app, Arduino Serial Monitor, other flasher tabs.</li>
+<li>%%PORTHELP%%</li>
+</ul>
+<div class="row"><button class="primary" id="connect">Connect</button>
+<label style="align-items:center">Speed <select id="baud"><option value="921600">Fast (921600)</option><option value="460800">Medium (460800)</option><option value="115200">Slow, most reliable (115200)</option></select></label></div>
+<p class="status" id="connMsg"></p><p class="info" id="chipInfo"></p></section>
+
+<section class="step" id="s2"><h2><span class="n">3</span>Flash</h2>
+<label><input type="radio" name="fw" id="fwBuiltin" checked> <span>%%NAME%% %%FWINFO%% (built in)</span></label>
+<label><input type="radio" name="fw" id="fwFile"> <span>Another .bin file written at 0x0 (e.g. a newer %%NAME%%): <input type="file" id="file" accept=".bin"></span></label>
+<label><input type="checkbox" id="erase"> <span>Erase the whole board first. Use this when switching from Meshtastic or if %%NAME%% acts strangely. <b>It also removes your uploaded ROM, disk and Wi-Fi settings.</b></span></label>
+<div class="row"><button class="primary" id="flash" disabled>Flash</button><button id="disc" disabled>Disconnect</button></div>
+<progress id="prog" max="100" value="0" hidden></progress>
+<p class="status" id="flashMsg"></p></section>
+
+<section class="step" id="sB"><h2><span class="n">&#8645;</span>Back up or clone a board (optional)</h2>
+<p>A backup is an exact copy of the whole board: the firmware, your ROM, every disk in the library and the Wi-Fi settings. Restore it later, or write it onto a second %%SHORT%% to make a clone. Connect first (step 2).</p>
+<p class="status warn">A backup holds your Wi-Fi password and your Apple ROM, so keep the file to yourself.</p>
+<div class="row"><button class="primary" id="backup" disabled>Back up this board</button></div>
+<label><span>Restore or clone from a backup file: <input type="file" id="restoreFile" accept=".bin"></span></label>
+<div class="row"><button id="restore" disabled>Write backup to this board</button></div>
+<progress id="bprog" max="100" value="0" hidden></progress>
+<p class="status" id="backupMsg"></p></section>
+
+<section class="step" id="s3"><h2><span class="n">4</span>First start</h2>
+<p>The board restarts by itself (if the screen stays dark, tap <kbd>RST</kbd> once). Then join the Wi-Fi hotspot <b>%%AP%%</b> (password <code>heltecmac</code>), open <b>http://192.168.4.1</b>, pick your home network, and upload your ROM and a disk on the page it shows next.</p></section>
+
+<section class="step" id="s5"><h2><span class="n">5</span>Watch the board start (optional)</h2>
+<p>Shows what the board prints while it starts: Wi-Fi, memory and whether the Mac started. Useful if it gets stuck. Click <b>Disconnect</b> above first if you're still connected for flashing.</p>
+<div class="row"><button id="watch">Watch the log (restarts the board)</button><button id="stopWatch" disabled>Stop</button><button id="copyLog">Copy log</button></div>
+<pre id="boardLog" aria-live="polite"></pre></section>
+
+<section class="step"><h2><span class="n">?</span>If it won't connect or flash</h2>
+<details open><summary>The board isn't in the list, or nothing happens</summary><ul>
+<li>Try another cable or USB port (a port on the computer itself, not a hub).</li>
+<li>%%DRIVERHELP%%</li>
+<li>On Linux, add yourself to the <code>dialout</code> group, then log out and back in.</li>
+</ul></details>
+<details><summary>"Failed to connect" or it stops at "Connecting..."</summary><ul>
+<li>Put the board in download mode by hand: hold <kbd>PRG</kbd>, tap <kbd>RST</kbd>, let go of <kbd>PRG</kbd>. Then click <b>Connect</b> again.</li>
+<li>Pick <b>Slow (115200)</b> under Speed.</li>
+<li>Make sure no other program or browser tab has the port open.</li>
+</ul></details>
+<details><summary>It flashed, but the screen stays blank or keeps rebooting</summary><ul>
+<li>Flash again with <b>Erase the whole board first</b> ticked.</li>
+<li>Press <kbd>RST</kbd> once after flashing.</li>
+</ul></details>
+<details><summary>Going back to Meshtastic</summary><ul><li>Use the official flasher at flasher.meshtastic.org.</li></ul></details>
+</section>
+
+<section class="step"><h2><span class="n">&gt;_</span>Log</h2><pre id="log"></pre></section>
+</main>
+<script type="module">
+%%ESPTOOL%%
+</script>
+<script type="module">
+const FW_B64 = "%%FWB64%%";
+const $ = id => document.getElementById(id);
+const log = s => { $('log').textContent += s + '\n'; $('log').scrollTop = 1e9; };
+const set = (id, text, cls) => { $(id).textContent = text; $(id).className = 'status ' + (cls || ''); };
+const { ESPLoader, Transport } = window.esptool;
+
+// ---- MD5 (used to verify what was written)
+function md5(str){const k=[],r=[7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,5,9,14,20,5,9,14,20,5,9,14,20,5,9,14,20,4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21];
+ for(let i=0;i<64;i++)k[i]=Math.floor(Math.abs(Math.sin(i+1))*4294967296)>>>0;
+ const n=str.length,words=((n+8)>>>6)+1,w=new Uint32Array(words*16);
+ for(let i=0;i<n;i++)w[i>>2]|=(str.charCodeAt(i)&255)<<((i%4)*8);
+ w[n>>2]|=0x80<<((n%4)*8);w[words*16-2]=(n*8)>>>0;w[words*16-1]=Math.floor(n/536870912);
+ let a0=0x67452301,b0=0xefcdab89,c0=0x98badcfe,d0=0x10325476;
+ for(let j=0;j<words*16;j+=16){let a=a0,b=b0,c=c0,d=d0;
+  for(let i=0;i<64;i++){let f,g;
+   if(i<16){f=(b&c)|(~b&d);g=i}else if(i<32){f=(d&b)|(~d&c);g=(5*i+1)%16}else if(i<48){f=b^c^d;g=(3*i+5)%16}else{f=c^(b|~d);g=(7*i)%16}
+   const t=d;d=c;c=b;const x=(a+f+k[i]+w[j+g])>>>0;b=(b+((x<<r[i])|(x>>>(32-r[i]))))>>>0;a=t}
+  a0=(a0+a)>>>0;b0=(b0+b)>>>0;c0=(c0+c)>>>0;d0=(d0+d)>>>0}
+ return [a0,b0,c0,d0].map(v=>[0,8,16,24].map(s=>((v>>>s)&255).toString(16).padStart(2,'0')).join('')).join('')}
+
+// ---- step 1: browser check
+let ok = 'serial' in navigator;
+if (ok) set('browserMsg', 'Good: this browser can talk to USB serial devices.', 'ok'), $('s0').classList.add('done');
+else set('browserMsg', 'This browser can\'t flash boards. Open this file in Google Chrome or Microsoft Edge on a computer (not a phone).', 'bad');
+$('connect').disabled = !ok;
+
+// ---- step 2: connect
+let transport = null, loader = null, flashBytes = 8 * 1048576;
+const connButtons = on => { for (const id of ['flash', 'disc', 'backup', 'restore']) $(id).disabled = !on; $('connect').disabled = on; };
+const term = { clean(){}, writeLine: s => log(s), write: s => { $('log').textContent += s; } };
+$('connect').onclick = async () => {
+  try {
+    set('connMsg', 'Choose the board in the browser\'s list...');
+    const port = await navigator.serial.requestPort({});
+    transport = new Transport(port, true);
+    loader = new ESPLoader({ transport, baudrate: +$('baud').value, terminal: term, romBaudrate: 115200 });
+    set('connMsg', 'Connecting... (if this hangs: hold PRG, tap RST, let go of PRG)');
+    const chip = await loader.main();
+    const mac = await loader.chip.readMac(loader).catch(() => '');
+    const flashId = await loader.readFlashId().catch(() => 0);
+    const sizeMB = flashId ? (1 << ((flashId >> 16) & 0xff)) / 1048576 : 0; flashBytes = sizeMB ? sizeMB * 1048576 : 8 * 1048576;
+    $('chipInfo').textContent = `${chip}${mac ? '  ·  MAC ' + mac : ''}${sizeMB ? '  ·  ' + sizeMB + ' MB flash' : ''}`;
+    if (!/ESP32-S3/i.test(chip)) set('connMsg', 'Connected, but this isn\'t an ESP32-S3. %%NAME%% is for the %%BOARD%%.', 'warn');
+    else if (sizeMB && sizeMB < %%FLASHMB%%) set('connMsg', 'Connected, but the board has less than %%FLASHMB%% MB of flash; %%NAME%% needs %%FLASHMB%% MB. %%WRONGBOARD%%', 'warn');
+    else { set('connMsg', 'Connected to the board.', 'ok'); $('s1').classList.add('done'); }
+    connButtons(true);
+  } catch (e) {
+    log('Connect failed: ' + (e.message || e));
+    set('connMsg', /No port selected/i.test(e.message) ? 'No board chosen. Click Connect and pick it from the list.' :
+      'Couldn\'t talk to the board. Put it in download mode (hold PRG, tap RST, let go), pick Slow speed, and try again. Details are in the log.', 'bad');
+    try { await transport?.disconnect(); } catch {}
+    transport = loader = null;
+  }
+};
+
+$('disc').onclick = async () => {
+  try { await transport?.disconnect(); } catch {}
+  transport = loader = null;
+  connButtons(false);
+  set('connMsg', 'Disconnected.');
+};
+
+async function restartBoard(port) {
+  await port.setSignals({ dataTerminalReady: false, requestToSend: true });
+  await new Promise(r => setTimeout(r, 150));
+  await port.setSignals({ dataTerminalReady: false, requestToSend: false });
+}
+
+// ---- step 5: board log at 115200
+let watchPort = null, watchReader = null;
+$('watch').onclick = async () => {
+  try {
+    if (transport) { try { await transport.disconnect(); } catch {} transport = loader = null; connButtons(false); }
+    watchPort = await navigator.serial.requestPort({});
+    await watchPort.open({ baudRate: 115200 });
+    // pulse EN through RTS to restart the board (normal boot: IO0 high)
+    await restartBoard(watchPort);
+    $('boardLog').textContent = '';
+    $('watch').disabled = true; $('stopWatch').disabled = false;
+    const dec = new TextDecoder();
+    watchReader = watchPort.readable.getReader();
+    for (;;) {
+      const { value, done } = await watchReader.read();
+      if (done) break;
+      const el = $('boardLog');
+      el.textContent += dec.decode(value, { stream: true });
+      if (el.textContent.length > 60000) el.textContent = el.textContent.slice(-40000);
+      el.scrollTop = 1e9;
+    }
+  } catch (e) {
+    if (!/No port selected/i.test(e.message)) $('boardLog').textContent += '\n[' + (e.message || e) + ']\n';
+  }
+  try { watchReader?.releaseLock(); } catch {}
+  try { await watchPort?.close(); } catch {}
+  watchPort = watchReader = null;
+  $('watch').disabled = false; $('stopWatch').disabled = true;
+};
+$('stopWatch').onclick = async () => { try { await watchReader?.cancel(); } catch {} };
+$('copyLog').onclick = async () => {
+  const t = $('boardLog').textContent || $('log').textContent;
+  try { await navigator.clipboard.writeText(t); $('copyLog').textContent = 'Copied'; }
+  catch { const r = document.createRange(); r.selectNodeContents($('boardLog')); getSelection().removeAllRanges(); getSelection().addRange(r); $('copyLog').textContent = 'Selected - press Ctrl+C'; }
+  setTimeout(() => $('copyLog').textContent = 'Copy log', 2500);
+};
+
+// ---- step 3: flash
+function b64ToBinStr(b64) { return atob(b64); }
+async function fileToBinStr(f) { const a = new Uint8Array(await f.arrayBuffer()); let s = ''; for (let i = 0; i < a.length; i += 0x8000) s += String.fromCharCode.apply(null, a.subarray(i, i + 0x8000)); return s; }
+$('file').onchange = () => { $('fwFile').checked = true; };
+$('flash').onclick = async () => {
+  let data;
+  if ($('fwFile').checked) {
+    const f = $('file').files[0];
+    if (!f) { set('flashMsg', 'Pick a .bin file first, or choose the built-in %%NAME%% firmware.', 'bad'); return; }
+    data = await fileToBinStr(f);
+    log(`Using ${f.name} (${data.length} bytes)`);
+  } else data = b64ToBinStr(FW_B64);
+  for (const id of ['flash', 'disc', 'backup', 'restore']) $(id).disabled = true;
+  $('prog').hidden = false; $('prog').value = 0;
+  try {
+    if ($('erase').checked) { set('flashMsg', 'Erasing the whole board (about 20-40 seconds)...'); await loader.eraseFlash(); log('Erased.'); }
+    set('flashMsg', 'Writing... keep the board plugged in.');
+    await loader.writeFlash({ fileArray: [{ data, address: 0 }], flashSize: 'keep', flashMode: 'keep', flashFreq: 'keep',
+      eraseAll: false, compress: true,
+      reportProgress: (i, written, total) => { $('prog').value = Math.round(written / total * 100); },
+      calculateMD5Hash: s => md5(s) });
+    set('flashMsg', 'Done and verified. Restarting the board...', 'ok');
+    // Restart into the new firmware. (esptool-js 0.5.7's own hard reset only releases RTS and
+    // never pulls EN low, so the board stayed in download mode until RST was pressed.)
+    // IO0 must be high (DTR off) while EN is pulsed low (RTS on) and released.
+    await restartBoard(transport.device);
+    try { await transport.disconnect(); } catch {}
+    transport = loader = null;
+    $('s2').classList.add('done');
+    set('flashMsg', 'Flashed and verified. The board is restarting now; go to step 4.', 'ok');
+    connButtons(false);
+  } catch (e) {
+    log('Flash failed: ' + (e.message || e));
+    set('flashMsg', 'Flashing stopped partway. Unplug and replug the board, put it in download mode (hold PRG, tap RST, let go), choose Slow speed, Connect and Flash again. Nothing is damaged by a failed flash.', 'bad');
+    $('disc').disabled = false;
+  }
+};
+
+// ---- backup / restore (clone)
+const u8ToBinStr = a => { let s = ''; for (let i = 0; i < a.length; i += 0x8000) s += String.fromCharCode.apply(null, a.subarray(i, i + 0x8000)); return s; };
+const busy = on => { for (const id of ['flash', 'disc', 'backup', 'restore']) $(id).disabled = on; $('bprog').hidden = !on; if (on) $('bprog').value = 0; };
+$('backup').onclick = async () => {
+  busy(true);
+  try {
+    const mb = flashBytes / 1048576, t0 = Date.now();
+    set('backupMsg', `Reading all ${mb} MB from the board... keep it plugged in (about ${Math.round(mb * 12 * 921600 / +$('baud').value)} seconds).`);
+    // read in 1 MB pieces: esptool-js re-copies its buffer on every packet, which crawls for 8 MB at once
+    const data = new Uint8Array(flashBytes), CH = 1048576;
+    for (let off = 0; off < flashBytes; off += CH) {
+      const n = Math.min(CH, flashBytes - off);
+      const part = await loader.readFlash(off, n, (p, got) => { $('bprog').value = Math.round((off + got) / flashBytes * 100); });
+      data.set(part.subarray(0, n), off);
+    }
+    log(`Read ${data.length} bytes in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+    set('backupMsg', 'Checking the copy against the board...');
+    const want = await loader.flashMd5sum(0, flashBytes), got = md5(u8ToBinStr(data));
+    if (want !== got) throw new Error(`the copy doesn't match the board (md5 ${got} vs ${want})`);
+    log('Backup verified, md5 ' + got);
+    const d = new Date(), stamp = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([data], { type: 'application/octet-stream' }));
+    a.download = `heltec-mac-backup-${stamp}.bin`; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    set('backupMsg', `Backup saved as ${a.download} (${mb} MB, verified). The board is untouched.`, 'ok');
+    busy(false);
+    await new Promise(r => setTimeout(r, 600));   // let the download start first
+    if (confirm(`Backup complete!\n\nSaved as ${a.download} (${mb} MB, verified).\n\nDisconnect from the board now? It restarts and runs %%NAME%% as usual.`)) {
+      try { await restartBoard(transport.device); } catch {}
+      try { await transport.disconnect(); } catch {}
+      transport = loader = null; connButtons(false);
+      set('backupMsg', `Backup saved as ${a.download} (${mb} MB, verified). Disconnected; the board is restarting.`, 'ok');
+      set('connMsg', 'Disconnected.');
+    }
+    return;
+  } catch (e) {
+    log('Backup failed: ' + (e.message || e));
+    set('backupMsg', 'The backup stopped: ' + (e.message || e) + '. Try Slow speed, reconnect and try again.', 'bad');
+  }
+  busy(false);
+};
+$('restore').onclick = async () => {
+  const f = $('restoreFile').files[0];
+  if (!f) { set('backupMsg', 'Pick a backup .bin file first.', 'bad'); return; }
+  if (f.size > flashBytes) { set('backupMsg', `That file is bigger (${(f.size / 1048576).toFixed(1)} MB) than this board's flash.`, 'bad'); return; }
+  if (!confirm(`Write ${f.name} to this board? Everything on it now (firmware, ROM, disks, Wi-Fi settings) is replaced by the backup.`)) return;
+  busy(true);
+  try {
+    const data = await fileToBinStr(f);
+    if (data.charCodeAt(0) !== 0xE9) throw new Error('that file doesn\'t start with ESP32 firmware, so it isn\'t a board backup');
+    set('backupMsg', 'Writing the backup... keep the board plugged in. Most of it is empty space, which goes quickly.');
+    await loader.writeFlash({ fileArray: [{ data, address: 0 }], flashSize: 'keep', flashMode: 'keep', flashFreq: 'keep',
+      eraseAll: false, compress: true,
+      reportProgress: (i, written, total) => { $('bprog').value = Math.round(written / total * 100); },
+      calculateMD5Hash: s => md5(s) });
+    log('Restore written and verified.');
+    await restartBoard(transport.device);
+    try { await transport.disconnect(); } catch {}
+    transport = loader = null;
+    busy(false); connButtons(false);
+    set('backupMsg', 'Restored and verified. The board is restarting with everything from the backup.', 'ok');
+    return;
+  } catch (e) {
+    log('Restore failed: ' + (e.message || e));
+    set('backupMsg', 'Writing stopped: ' + (e.message || e) + '. Put the board in download mode (hold PRG, tap RST, let go), reconnect and try again.', 'bad');
+  }
+  busy(false);
+};
+</script></body></html>
