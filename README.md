@@ -15,7 +15,7 @@ board's address on a PC, a Raspberry Pi or a phone, and you're at the Finder.
 > Have a **Heltec V3** instead? It has no PSRAM, so it runs a 128K Mac. Flash it with
 > [`flasher/Heltec-V3-Mac128k-Flasher.html`](flasher/Heltec-V3-Mac128k-Flasher.html) (or
 > `firmware/Heltec-V3-Mac128k.bin`), included here for convenience. Its home is
-> [Heltec V3 Mac 128K](https://github.com/hardwaremack-prog/Heltec-Mac128k). Both share the same
+> [Heltec V3 Mac 128K](https://github.com/hardwaremack-prog/Heltec-V3-Mac128k). Both share the same
 > code, and a V3 and a V4 can sit on the same network.
 
 ## Highlights
