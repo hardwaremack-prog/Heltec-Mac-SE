@@ -2,6 +2,8 @@
 
 **A 1 MB Macintosh SE running on a Heltec V4 Meshtastic board, played in your web browser, with sound.**
 
+**Flash it from your browser:** [hardwaremack-prog.github.io/Heltec-V4-Mac-SE/](https://hardwaremack-prog.github.io/Heltec-V4-Mac-SE/) (Chrome or Edge on a computer).
+
 Heltec V4 Mac SE turns a **Heltec WiFi LoRa 32 V4** (the ESP32-S3 board with 2 MB of PSRAM and
 16 MB of flash) into a working **Macintosh SE**. The board emulates the Mac's 68000 processor
 and its hardware, keeps a library of 800K and 1.44 MB floppy disks in its own flash, and serves
